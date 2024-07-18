@@ -1,9 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./html/**/*.html",
-    "./html/page/*.html",
-    "./html/post/*.html"
+    "./docs/**/*.html",
+    "./docs/page/*.html",
+    "./docs/post/*.html"
   ],
   theme: {
     extend: {},
@@ -17,7 +17,7 @@ module.exports = {
   },
   //purge: {
 	  content: [
-      './html/**/*.html',
+      './docs/**/*.html',
     ],
     option:{
       safelist: [],

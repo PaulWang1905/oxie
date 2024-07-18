@@ -117,7 +117,7 @@ class INDEX:
             posts=self.posts,
             pages=self.pages
         )
-        with open("html/index.html", "w") as html_file:
+        with open("docs/index.html", "w") as html_file:
             html_file.write(rendered_html)
 
 # Function to convert Markdown files to HTML
@@ -125,6 +125,7 @@ def generate_html() -> None:
     '''
     Generate HTML files from Markdown files,
     only for files in source/page and source/post, does not include index.md
+    to the docs directory
     '''
     directories = ["source/page", "source/post"]
 
@@ -133,7 +134,7 @@ def generate_html() -> None:
             for file in files:
                 if file.endswith(".md"):
                     md_path = os.path.join(root, file)
-                    html_path = os.path.join("html", os.path.relpath(md_path, "source")).replace(".md", ".html")
+                    html_path = os.path.join("docs", os.path.relpath(md_path, "source")).replace(".md", ".html")
                     os.makedirs(os.path.dirname(html_path), exist_ok=True)
                     post = POST(md_path, html_path)   
                     post.parse()
@@ -153,11 +154,15 @@ def clean_old_files() -> None:
     '''
     Clean old HTML files
     '''
-    for root, dirs, files in os.walk("html"):
+    for root, dirs, files in os.walk("docs"):
         for file in files:
             if file.endswith(".html"):
                 os.remove(os.path.join(root, file))
-    os.remove("html/styles.css")
+    try:
+        os.remove("docs/styles.css")
+    except FileNotFoundError:
+        pass
+    
 
 
 if __name__ == "__main__":
