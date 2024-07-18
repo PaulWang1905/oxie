@@ -5,9 +5,9 @@
 OXIE is a static blog generator. 
 
 # reading goes here.
-[![Awesome](https://awesome.re/badge.svg)](https://github.com/PaulWang1905/Readings) 
-![](https://img.shields.io/github/last-commit/PaulWang1905/Readings?color=green) 
-[![Build Status](https://github.com/PaulWang1905/Readings/workflows/CI/badge.svg)](https://github.com/PaulWang1905/Readings/actions?workflow=CI)
+[![Awesome](https://awesome.re/badge.svg)](https://github.com/PaulWang1905/oxie) 
+![](https://img.shields.io/github/last-commit/PaulWang1905/oxie?color=green) 
+[![Build Status](https://github.com/PaulWang1905/Readings/workflows/CI/badge.svg)](https://github.com/PaulWang1905/oxie/actions?workflow=CI)
 
 ## Folder Structure
 
