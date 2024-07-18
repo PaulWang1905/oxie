@@ -1,0 +1,22 @@
+{
+  "name": "oxie",
+  "version": "1.0.0",
+  "description": "## Introducation",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:css": "NODE_ENV=production tailwindcss -i src/styles.css -o html/styles.css"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "autoprefixer": "^10.4.19",
+    "daisyui": "^4.12.10",
+    "postcss": "^8.4.39",
+    "tailwindcss": "^3.4.4"
+  },
+  "dependencies": {
+    "@tailwindcss/typography": "^0.5.13"
+  }
+}
