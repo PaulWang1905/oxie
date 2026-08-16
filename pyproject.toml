@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "oxie"
-version = "0.1.0"
+version = "0.2.0"
 description = "A small static site/blog generator: Markdown + Jinja2 + Tailwind"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -29,9 +29,15 @@ dependencies = [
     "pandas>=2.0",
 ]
 
+[project.scripts]
+oxie = "oxie.cli:main"
+
 [project.urls]
 Homepage = "https://github.com/PaulWang1905/oxie"
 Issues = "https://github.com/PaulWang1905/oxie/issues"
 
 [tool.setuptools]
 packages = ["oxie"]
+
+[tool.setuptools.package-data]
+oxie = ["templates/default/*.html", "templates/default/*.css"]

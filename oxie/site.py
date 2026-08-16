@@ -12,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 
 import markdown
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import ChoiceLoader, Environment, FileSystemLoader
 from pygments.formatters import HtmlFormatter
 
 from .config import SiteConfig
@@ -177,9 +177,18 @@ class Site:
     pipeline that turns markdown in source_dir into HTML in output_dir.
     '''
 
+    #: Templates shipped with the package. `oxie init` copies these into a
+    #: new site; they also act as a fallback for anything a site omits.
+    BUNDLED_TEMPLATE_DIR = Path(__file__).parent / "templates" / "default"
+
     def __init__(self, config: SiteConfig = None) -> None:
         self.config = config or SiteConfig()
-        self.env = Environment(loader=FileSystemLoader(str(self.config.template_dir)))
+        # The site's own templates always win; the bundled defaults fill any
+        # gaps, so a site renders before every template has been customised.
+        loaders = [FileSystemLoader(str(self.config.template_dir))]
+        if self.config.use_bundled_templates:
+            loaders.append(FileSystemLoader(str(self.BUNDLED_TEMPLATE_DIR)))
+        self.env = Environment(loader=ChoiceLoader(loaders))
         with open(self.config.meta_data_file) as f:
             self.meta_data = json.load(f)
         self.posts = []
@@ -353,9 +362,21 @@ class Site:
 
     def build_css(self) -> None:
         '''
-        Build the stylesheet with the configured command (e.g. Tailwind via npm)
+        Build the stylesheet with the configured command (Tailwind via npm by
+        default). Raises a readable error when the tool is not installed
+        rather than a bare FileNotFoundError.
         '''
-        subprocess.run(list(self.config.css_build_command), check=True)
+        command = list(self.config.css_build_command)
+        try:
+            subprocess.run(command, check=True)
+        except FileNotFoundError:
+            raise RuntimeError(
+                f"Could not run {command[0]!r} for the CSS build "
+                f"({' '.join(command)}).\n"
+                "oxie styles sites with Tailwind CSS, which needs Node.js:\n"
+                "  1. install Node.js  2. run `npm install` in this site\n"
+                "Set css_build_command=None in your SiteConfig to skip this step."
+            ) from None
 
     def build_pygments_css(self) -> None:
         '''

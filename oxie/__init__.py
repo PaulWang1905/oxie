@@ -8,15 +8,21 @@ optional features) and built by a Site:
     from oxie import Site, SiteConfig
 
     Site(SiteConfig()).build()
+
+To start a new site from scratch, use the command line instead:
+
+    oxie init myblog --title "My Blog"
 '''
 from .config import SiteConfig
 from .content import Post, Category
+from .scaffold import init_site
 from .site import Site, BlogIndex, IndexPage, generate_posts_jsonld
 from .updates import Update, UpdateReader
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "Site", "SiteConfig", "Post", "Category", "BlogIndex", "IndexPage",
-    "generate_posts_jsonld", "Update", "UpdateReader", "__version__",
+    "generate_posts_jsonld", "init_site", "Update", "UpdateReader",
+    "__version__",
 ]

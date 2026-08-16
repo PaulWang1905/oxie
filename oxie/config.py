@@ -43,6 +43,10 @@ class SiteConfig:
     # Site metadata JSON (title, link, phrases, default image, ...)
     meta_data_file: Path = Path('src/meta_data.json')
 
+    # Fall back to the templates bundled with oxie for any template the site
+    # does not define itself. Set False to fail loudly on a missing template.
+    use_bundled_templates: bool = True
+
     # Markdown pipeline
     markdown_extensions: List[str] = field(
         default_factory=lambda: list(DEFAULT_MARKDOWN_EXTENSIONS))

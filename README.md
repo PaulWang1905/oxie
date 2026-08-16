@@ -1,33 +1,51 @@
 # oxie
 
 **oxie** is a small static site/blog generator written in Python. It converts
-Markdown into a styled, SEO-friendly static website using Jinja2 templates,
-and leaves styling to whatever CSS toolchain you prefer (the author's sites
-use Tailwind + DaisyUI).
+Markdown into a styled, SEO-friendly static website using Jinja2 templates and
+**Tailwind CSS v4**.
 
 One package, many sites: each site supplies its own content, templates and
-`SiteConfig`, and oxie does the rest.
+`SiteConfig`, and oxie does the rest. `oxie init` gives you all three,
+pre-wired and building.
 
-## Install
+## Requirements
 
-```bash
-pip install git+https://github.com/PaulWang1905/oxie.git@v0.1.0
-```
+- Python 3.10+ (3.8 nominally supported but untested)
+- Node.js and npm — Tailwind CSS is a required part of the build
 
 ## Quick start
 
-A site is a folder of Markdown plus a folder of templates. The default layout:
+```bash
+pip install git+https://github.com/PaulWang1905/oxie.git@v0.2.0
+
+oxie init myblog --title "My Blog" --author "Your Name"
+cd myblog
+npm install       # Tailwind CSS v4
+python build.py   # writes docs/
+```
+
+Open `docs/index.html`, and you have a working blog: home page, a sample post,
+an about page, a blog index and a category page, with compiled Tailwind
+styling and syntax highlighting.
+
+`oxie init` never overwrites an existing file unless you pass `--force`, so it
+is safe to run in a directory that already has content.
+
+## What init creates
 
 ```
-source/            # content
+source/            # content — edit this
   index.md         # home page
   post/*.md        # blog posts
   page/*.md        # standalone pages
-  image/           # images, copied to the output
-  static/          # raw files, copied to the output
-src/               # Jinja2 templates + meta_data.json
+  image/           # images, copied to docs/image
+  static/          # raw files, copied to the site root
+src/               # Jinja2 templates + meta_data.json + styles.css
+  base.html        # shared layout the others extend
+  index.html  template.html  blog_template.html  category_template.html
 docs/              # generated output (GitHub Pages friendly)
-build.py           # your site's config, below
+build.py           # your site's config
+package.json       # Tailwind v4 via @tailwindcss/cli
 ```
 
 `build.py` is the whole per-site program:
@@ -36,17 +54,37 @@ build.py           # your site's config, below
 from oxie import Site, SiteConfig
 
 config = SiteConfig(
-    simple_pages={"readings_note_template.html": "readings_note.html"},
-    photography=True,
-    thumbnails=True,
+    collect_dirs={"source/image": "docs/image", "source/static": "docs"},
     pygments_style="github-dark",
+    css_build_command=("npm", "run", "build:css"),
 )
 
 if __name__ == "__main__":
     Site(config).build()
 ```
 
-Then `python build.py`.
+## Styling
+
+Tailwind v4 is configured **CSS-first** — there is no `tailwind.config.js` and
+no `postcss.config.js`. Everything lives in `src/styles.css`:
+
+```css
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@source "../src/**/*.html";
+@source "../docs/**/*.html";
+@source "../source/**/*.md";
+```
+
+Because the Jinja templates in `src/` are scanned as well as the generated
+HTML in `docs/`, classes are never purged just because CSS was built before
+HTML. Rendered Markdown is wrapped in the typography plugin's `prose` classes,
+and the bundled templates support light and dark via `dark:` variants.
+
+The templates copied into `src/` are yours — edit them freely. If you delete
+one, oxie falls back to its bundled copy, so a site always renders; set
+`use_bundled_templates=False` to make a missing template an error instead.
 
 ## What a build does
 
@@ -64,8 +102,9 @@ Then `python build.py`.
 7. `build_css()` — optional; runs your CSS command (e.g. `npm run build:css`).
 8. `build_pygments_css()` — optional; syntax-highlighting stylesheet.
 
-**Ordering note:** HTML is generated *before* CSS, so utility-class scanners
-like Tailwind's `content` globs see the finished HTML.
+**Ordering note:** HTML is generated *before* CSS, so Tailwind sees the
+finished HTML. The bundled `styles.css` also scans `src/` and `source/`, so
+this ordering is belt-and-braces rather than load-bearing.
 
 ## Configuration
 
@@ -77,6 +116,7 @@ Every path and feature lives on `SiteConfig`:
 | `template_dir` | `src` | Jinja2 templates |
 | `output_dir` | `docs` | Generated site |
 | `meta_data_file` | `src/meta_data.json` | Site metadata (title, link, image, phrases…) |
+| `use_bundled_templates` | `True` | Fall back to oxie's templates for anything the site omits |
 | `markdown_extensions` / `..._configs` | pymdownx set | Markdown pipeline |
 | `collect_dirs` | `source/image`→`docs/image`, `source/static`→`docs/page` | Static asset copying |
 | `index_excluded_titles` | Terms of Service, Privacy Policy | Pages hidden from the index listing |
@@ -110,7 +150,14 @@ lines at the top of the file, no `---` fences).
 
 Templates the generator expects in `template_dir`: `template.html` (posts and
 pages), `index.html`, `blog_template.html`, `category_template.html`, plus any
-you list in `simple_pages` and `photography_template.html` if enabled.
+you list in `simple_pages` and `photography_template.html` if enabled. `oxie
+init` writes the first four (and a shared `base.html` they extend); the
+generator falls back to its bundled copies for any you remove.
+
+Context passed to each template differs — `meta_data` reaches `template.html`
+and `index.html` but **not** `blog_template.html` or `category_template.html`,
+which receive `title`, `phrases` and their posts. The comment at the top of
+each bundled template lists exactly what it gets.
 
 ### Recent updates from a Google Sheet (optional)
 
@@ -130,7 +177,7 @@ The test suite runs fully offline.
 
 ## Status and known issues
 
-Version 0.1.0, extracted from the generator behind
+Version 0.2.0, extracted from the generator behind
 [puyuwang.org](https://puyuwang.org). Two behaviours are carried over from
 that codebase and preserved deliberately:
 
