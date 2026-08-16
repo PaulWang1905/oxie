@@ -146,4 +146,4 @@ likely become an optional extra.
 
 ## Licence
 
-ISC — see [LICENSE](LICENSE).
+Apache License 2.0 — see [LICENSE](LICENSE).
