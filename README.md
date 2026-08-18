@@ -16,7 +16,7 @@ pre-wired and building.
 ## Quick start
 
 ```bash
-pip install git+https://github.com/PaulWang1905/oxie.git@v0.2.0
+pip install oxie
 
 oxie init myblog --title "My Blog" --author "Your Name"
 cd myblog
@@ -166,10 +166,16 @@ spreadsheet's CSV export (columns `Date` and `Content`) and passes the five
 most recent entries to the index template as `updates`. Omit the key and the
 list is simply empty — no network access is attempted.
 
+This feature requires the optional Sheets dependencies:
+
+```bash
+pip install 'oxie[sheets]'
+```
+
 ## Development
 
 ```bash
-uv venv && uv pip install -e . --python .venv/bin/python
+uv venv && uv pip install -e '.[sheets]' --python .venv/bin/python
 .venv/bin/python -m unittest discover -s tests -v
 ```
 
@@ -177,7 +183,7 @@ The test suite runs fully offline.
 
 ## Status and known issues
 
-Version 0.2.0, extracted from the generator behind
+Version 0.3.0, extracted from the generator behind
 [puyuwang.org](https://puyuwang.org). Two behaviours are carried over from
 that codebase and preserved deliberately:
 
@@ -188,9 +194,7 @@ that codebase and preserved deliberately:
   `index.md`, and indexes into the description string, which yields its first
   character rather than the whole description.
 
-`pandas` is a dependency only because of the Google Sheets reader; it will
-likely become an optional extra.
-
 ## Licence
 
-Apache License 2.0 — see [LICENSE](LICENSE).
+Apache License 2.0 — see the
+[LICENSE](https://github.com/PaulWang1905/oxie/blob/main/LICENSE).

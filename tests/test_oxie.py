@@ -12,7 +12,7 @@ parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 
-from oxie import Site, SiteConfig, Post, Category, BlogIndex, IndexPage
+from oxie import Site, SiteConfig, Post, Category, BlogIndex, IndexPage, UpdateReader
 
 
 POST_MD = """---
@@ -176,6 +176,19 @@ class TestOxie(unittest.TestCase):
 
     def test_recent_updates_empty_without_spreadsheet(self):
         self.assertEqual(self.site.get_recent_updates(), [])
+
+    def test_spreadsheet_reader_explains_optional_dependency(self):
+        original_import = __import__
+
+        def import_without_pandas(name, *args, **kwargs):
+            if name == "pandas":
+                raise ImportError("pandas is not installed")
+            return original_import(name, *args, **kwargs)
+
+        reader = UpdateReader("spreadsheet-id")
+        with patch("builtins.__import__", side_effect=import_without_pandas):
+            with self.assertRaisesRegex(ImportError, r"pip install 'oxie\[sheets\]'"):
+                reader.load_from_spreadsheet()
 
     def test_clean_old_files(self):
         docs = self.test_dir / 'docs'

@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import List, Optional
 import logging
 from dataclasses import dataclass
-import pandas as pd
 
 
 @dataclass
@@ -114,6 +113,14 @@ class UpdateReader:
         Returns:
             The number of updates loaded
         """
+        try:
+            import pandas as pd
+        except ImportError as exc:
+            raise ImportError(
+                "Google Sheets updates require the optional 'sheets' dependencies. "
+                "Install them with: pip install 'oxie[sheets]'"
+            ) from exc
+
         try:
             # Load the CSV directly using pandas
             self.logger.info(f"Loading updates from spreadsheet URL: {self.csv_export_url}")

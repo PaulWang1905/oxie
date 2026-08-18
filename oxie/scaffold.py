@@ -68,7 +68,7 @@ PACKAGE_JSON = {
     },
 }
 
-REQUIREMENTS_TXT = "oxie @ git+https://github.com/PaulWang1905/oxie.git@v0.2.0\n"
+REQUIREMENTS_TXT = "oxie==0.3.0\n"
 
 GITIGNORE = """\
 __pycache__/

@@ -1,15 +1,16 @@
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "oxie"
-version = "0.2.0"
+version = "0.3.0"
 description = "A small static site/blog generator: Markdown + Jinja2 + Tailwind"
 readme = "README.md"
 requires-python = ">=3.8"
 authors = [{ name = "Puyu Wang" }]
-license = { text = "Apache-2.0" }
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 keywords = ["static-site-generator", "blog", "markdown", "jinja2"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -26,8 +27,10 @@ dependencies = [
     "python-frontmatter>=1.1",
     "Pygments>=2.17",
     "pillow>=10.0",
-    "pandas>=2.0",
 ]
+
+[project.optional-dependencies]
+sheets = ["pandas>=2.0"]
 
 [project.scripts]
 oxie = "oxie.cli:main"
