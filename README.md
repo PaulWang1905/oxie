@@ -183,7 +183,7 @@ The test suite runs fully offline.
 
 ## Status and known issues
 
-Version 0.3.0, extracted from the generator behind
+Version 0.3.1, extracted from the generator behind
 [puyuwang.org](https://puyuwang.org). Two behaviours are carried over from
 that codebase and preserved deliberately:
 

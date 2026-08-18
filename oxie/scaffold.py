@@ -68,7 +68,7 @@ PACKAGE_JSON = {
     },
 }
 
-REQUIREMENTS_TXT = "oxie==0.3.0\n"
+REQUIREMENTS_TXT = "oxie==0.3.1\n"
 
 GITIGNORE = """\
 __pycache__/
