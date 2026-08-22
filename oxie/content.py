@@ -9,6 +9,8 @@ from pathlib import Path
 
 import frontmatter
 
+from .seo import post_jsonld_script
+
 
 class Post:
     '''
@@ -74,6 +76,10 @@ class Post:
         rendered_html = self.site.template("template.html").render(
             meta_data=self.site.meta_data,
             post_meta_data=self.post_meta_data,
+            canonical=self.full_link,
+            full_link=self.full_link,
+            image_url=self.site.url_for(self.image) if self.image else None,
+            jsonld=post_jsonld_script(self, self.site.meta_data),
             title=self.title,
             author=self.author,
             summary=self.summary,
@@ -111,6 +117,8 @@ class Category:
         Render the category page
         '''
         rendered_html = self.site.template("category_template.html").render(
+            meta_data=self.meta_data,
+            canonical=self.site.url_for(self.link),
             title=self.meta_data["title"],
             phrases=self.meta_data["phrases"],
             posts=self.posts,

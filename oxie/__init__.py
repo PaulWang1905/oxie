@@ -16,13 +16,19 @@ To start a new site from scratch, use the command line instead:
 from .config import SiteConfig
 from .content import Post, Category
 from .scaffold import init_site
+from .seo import (
+    SitemapEntry, post_jsonld, posts_jsonld, render_robots_txt,
+    render_rss_feed, render_sitemap,
+)
 from .site import Site, BlogIndex, IndexPage, generate_posts_jsonld
 from .updates import Update, UpdateReader
 
-__version__ = "0.3.1"
+__version__ = "0.4.0"
 
 __all__ = [
     "Site", "SiteConfig", "Post", "Category", "BlogIndex", "IndexPage",
     "generate_posts_jsonld", "init_site", "Update", "UpdateReader",
+    "SitemapEntry", "post_jsonld", "posts_jsonld", "render_robots_txt",
+    "render_rss_feed", "render_sitemap",
     "__version__",
 ]

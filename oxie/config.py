@@ -72,6 +72,19 @@ class SiteConfig:
     thumbnail_dir: Optional[Path] = None  # default: output_dir/image/photo
     thumbnail_width: int = 600
 
+    # Discovery files. All are built from meta_data["link"], so that must be
+    # the site's real base URL for the generated URLs to be correct.
+    sitemap: bool = True
+    sitemap_file: str = 'sitemap.xml'
+    robots_txt: bool = True
+    robots_file: str = 'robots.txt'
+    feed: bool = True
+    feed_file: str = 'feed.xml'
+    feed_max_items: int = 20
+    # Render 404.html, which GitHub Pages serves for unknown paths
+    error_page: bool = True
+    error_page_template: str = '404.html'
+
     # CSS pipeline: command run from the site root, or None to skip
     css_build_command: Optional[Sequence[str]] = ('npm', 'run', 'build:css')
     # Pygments highlight style written to output_dir/pygments.css, None to skip

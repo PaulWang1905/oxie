@@ -1,9 +1,11 @@
 {# Base layout shared by every default oxie template.
 
    Only `title` and `phrases` are available in every render context, so
-   anything else must be guarded with `is defined`. Navigation uses
-   root-absolute links, matching the root-absolute `post.link` values the
-   generator produces.
+   anything else must be guarded with `is defined`. `site_url` and `feed_url`
+   are Jinja globals set by Site, so they are available everywhere; `canonical`
+   is per-page and passed by each render call. Navigation uses root-absolute
+   links, matching the root-absolute `post.link` values the generator
+   produces.
 
    Styling is Tailwind CSS v4; classes here are picked up by the @source
    globs in src/styles.css. #}
@@ -13,9 +15,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block page_title %}{{ title }}{% endblock %}</title>
+{% if canonical %}<link rel="canonical" href="{{ canonical }}">{% endif %}
+{% if feed_url %}<link rel="alternate" type="application/rss+xml" title="{{ meta_data.title if meta_data else title }}" href="{{ feed_url }}">{% endif %}
 {% block meta %}{% endblock %}
 <link rel="stylesheet" href="/styles.css">
 <link rel="stylesheet" href="/pygments.css">
+{% if jsonld %}<script type="application/ld+json">
+{{ jsonld }}
+</script>{% endif %}
 </head>
 <body class="min-h-screen bg-white text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100">
 

@@ -1,11 +1,16 @@
 {# Home page (docs/index.html).
-   Context: title, author, date, description, phrases, content, posts,
-   pages, updates #}
+   Context: meta_data, canonical, jsonld, title, author, date, description,
+   phrases, content, posts, pages, updates #}
 {% extends "base.html" %}
 
 {% block meta %}
 {% if description %}<meta name="description" content="{{ description }}">{% endif %}
 {% if author %}<meta name="author" content="{{ author }}">{% endif %}
+<meta property="og:title" content="{{ title }}">
+{% if description %}<meta property="og:description" content="{{ description }}">{% endif %}
+<meta property="og:type" content="website">
+{% if canonical %}<meta property="og:url" content="{{ canonical }}">{% endif %}
+<meta name="twitter:card" content="summary">
 {% endblock %}
 
 {% block content %}

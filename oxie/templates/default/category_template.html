@@ -1,9 +1,12 @@
 {# One page per category (docs/blog_<category>.html).
-   Context: title, phrases, posts, category, tags.
-   Note: `meta_data` is NOT passed to this template. #}
+   Context: meta_data, canonical, title, phrases, posts, category, tags. #}
 {% extends "base.html" %}
 
 {% block page_title %}{{ category }} — {{ title }}{% endblock %}
+
+{% block meta %}
+<meta name="description" content="Posts in {{ category }} on {{ title }}.">
+{% endblock %}
 
 {% block content %}
 <h1 class="text-3xl font-semibold tracking-tight">{{ category }}</h1>

@@ -20,6 +20,7 @@ TEMPLATE_FILES = [
     "template.html",
     "blog_template.html",
     "category_template.html",
+    "404.html",
 ]
 
 DEFAULT_PHRASES = [
@@ -68,7 +69,9 @@ PACKAGE_JSON = {
     },
 }
 
-REQUIREMENTS_TXT = "oxie==0.3.1\n"
+# oxie is not on PyPI, so a scaffolded site pins the git tag rather than a
+# version specifier that pip cannot resolve. Bump this with every release.
+REQUIREMENTS_TXT = "oxie @ git+https://github.com/PaulWang1905/oxie.git@v0.4.0\n"
 
 GITIGNORE = """\
 __pycache__/

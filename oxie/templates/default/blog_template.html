@@ -1,9 +1,13 @@
 {# Blog index (docs/blog_index.html).
-   Context: title, phrases, categories, posts (newest first).
-   Note: `meta_data` is NOT passed to this template. #}
+   Context: meta_data, canonical, title, phrases, categories,
+   posts (newest first). #}
 {% extends "base.html" %}
 
 {% block page_title %}Blog — {{ title }}{% endblock %}
+
+{% block meta %}
+<meta name="description" content="All posts on {{ title }}.">
+{% endblock %}
 
 {% block content %}
 <h1 class="text-3xl font-semibold tracking-tight">Blog</h1>

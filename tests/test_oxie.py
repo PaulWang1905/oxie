@@ -148,7 +148,8 @@ class TestOxie(unittest.TestCase):
     def test_blog_index(self):
         post = self.make_post()
         blog_index = BlogIndex(self.site, [post])
-        self.assertEqual(blog_index.category_list, {'test'})
+        # A sorted list, not a set: category order has to be stable across runs
+        self.assertEqual(blog_index.category_list, ['test'])
         self.assertEqual(blog_index.tags, {'test', 'unit-test'})
 
         blog_index.render()
@@ -162,7 +163,9 @@ class TestOxie(unittest.TestCase):
 
         index = IndexPage(self.site, [post], [page])
         index.parse()
-        self.assertEqual(self.site.meta_data['title'], 'Test Post')
+        # index.md's title lands on the page, not back in the site metadata
+        self.assertEqual(index.title, 'Test Post')
+        self.assertEqual(self.site.meta_data['title'], 'Test Site')
 
         index.render()
         html = (self.test_dir / 'docs/index.html').read_text()

@@ -43,6 +43,7 @@ source/            # content — edit this
 src/               # Jinja2 templates + meta_data.json + styles.css
   base.html        # shared layout the others extend
   index.html  template.html  blog_template.html  category_template.html
+  404.html         # served by GitHub Pages for unknown paths
 docs/              # generated output (GitHub Pages friendly)
 build.py           # your site's config
 package.json       # Tailwind v4 via @tailwindcss/cli
@@ -97,14 +98,19 @@ one, oxie falls back to its bundled copy, so a site always renders; set
    pages, the blog index, and the home page.
 3. `render_simple_pages()` — any extra one-off template pages.
 4. `render_photography_page()` — optional; parses a `photos.md` album file.
-5. `collect_static_files()` — copies images and static files to the output.
-6. `generate_thumbnails()` — optional; gallery thumbnails via Pillow.
-7. `build_css()` — optional; runs your CSS command (e.g. `npm run build:css`).
-8. `build_pygments_css()` — optional; syntax-highlighting stylesheet.
+5. `render_error_page()` — optional; `404.html`.
+6. `generate_sitemap()` — optional; `sitemap.xml`.
+7. `generate_feed()` — optional; RSS 2.0 at `feed.xml`.
+8. `generate_robots_txt()` — optional; `robots.txt` pointing at the sitemap.
+9. `collect_static_files()` — copies images and static files to the output.
+10. `generate_thumbnails()` — optional; gallery thumbnails via Pillow.
+11. `build_css()` — optional; runs your CSS command (e.g. `npm run build:css`).
+12. `build_pygments_css()` — optional; syntax-highlighting stylesheet.
 
-**Ordering note:** HTML is generated *before* CSS, so Tailwind sees the
-finished HTML. The bundled `styles.css` also scans `src/` and `source/`, so
-this ordering is belt-and-braces rather than load-bearing.
+**Ordering notes:** HTML is generated *before* CSS, so Tailwind sees the
+finished HTML — including `404.html`, whose classes would otherwise be purged.
+The discovery files are written *before* static files are collected, so a
+hand-written `source/static/robots.txt` overrides the generated one.
 
 ## Configuration
 
@@ -123,8 +129,17 @@ Every path and feature lives on `SiteConfig`:
 | `simple_pages` | `{}` | template name → output name, rendered once |
 | `photography` / `photos_md` | `False` | Photo album page |
 | `thumbnails` / `thumbnail_dir` / `thumbnail_width` | `False` / … / `600` | Gallery thumbnails |
+| `sitemap` / `sitemap_file` | `True` / `sitemap.xml` | XML sitemap of every indexable page |
+| `robots_txt` / `robots_file` | `True` / `robots.txt` | Permissive robots.txt pointing at the sitemap |
+| `feed` / `feed_file` / `feed_max_items` | `True` / `feed.xml` / `20` | RSS 2.0 feed of recent posts |
+| `error_page` / `error_page_template` | `True` / `404.html` | Not-found page |
 | `css_build_command` | `("npm", "run", "build:css")` | Set to `None` to skip |
 | `pygments_style` | `None` | e.g. `"github-dark"` |
+
+All four discovery outputs build their URLs from `meta_data["link"]`, so that
+must be the site's real base URL. Set any switch to `False` to skip it — the
+matching file is then removed from the output directory rather than left
+stale.
 
 ## Content format
 
@@ -154,10 +169,12 @@ you list in `simple_pages` and `photography_template.html` if enabled. `oxie
 init` writes the first four (and a shared `base.html` they extend); the
 generator falls back to its bundled copies for any you remove.
 
-Context passed to each template differs — `meta_data` reaches `template.html`
-and `index.html` but **not** `blog_template.html` or `category_template.html`,
-which receive `title`, `phrases` and their posts. The comment at the top of
-each bundled template lists exactly what it gets.
+Context passed to each template differs, and the comment at the top of each
+bundled template lists exactly what it gets. Every page receives `canonical`
+(its absolute URL) and, where there is structured data to embed, `jsonld`.
+`site_url` and `feed_url` are Jinja globals, available in every template
+without being passed. Post and page renders additionally get `full_link` and
+`image_url` for social preview tags.
 
 ### Recent updates from a Google Sheet (optional)
 
@@ -181,18 +198,30 @@ uv venv && uv pip install -e '.[sheets]' --python .venv/bin/python
 
 The test suite runs fully offline.
 
-## Status and known issues
+## SEO and syndication
 
-Version 0.3.1, extracted from the generator behind
-[puyuwang.org](https://puyuwang.org). Two behaviours are carried over from
-that codebase and preserved deliberately:
+Out of the box a built site carries a `sitemap.xml`, a `robots.txt`, an RSS 2.0
+feed, a `404.html`, canonical link tags, Open Graph and Twitter card metadata,
+and inline Schema.org JSON-LD (`BlogPosting` per post, `ItemList` on the home
+page). `posts_metadata.jsonld` is still written for anything that consumed it.
 
-- Category order on the blog index comes from iterating a Python `set`, so the
-  file's contents can differ between runs. Set `PYTHONHASHSEED=0` when
-  comparing builds.
-- `IndexPage.parse()` overwrites `meta_data["title"]` with the title from
-  `index.md`, and indexes into the description string, which yields its first
-  character rather than the whole description.
+Generated files are **deterministic**: no build timestamps are used anywhere,
+so rebuilding unchanged content produces byte-identical output instead of a
+spurious diff. Note that the bundled `base.html` picks a random footer phrase,
+which does change per build — pin `phrases` to a single entry if you need
+fully reproducible HTML.
+
+## Status
+
+Version 0.4.0, extracted from the generator behind
+[puyuwang.org](https://puyuwang.org).
+
+Three behaviours carried over from that codebase were fixed in 0.4.0 and will
+change your output on upgrade: category order on the blog index is now sorted
+rather than set-iteration order; `IndexPage` no longer overwrites
+`meta_data["title"]`; and the home page description is no longer truncated to
+its first character. The metadata key `update_spreedsheet_id` keeps its
+original spelling, since renaming it would break existing sites.
 
 ## Licence
 
