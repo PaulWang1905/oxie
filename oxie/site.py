@@ -8,7 +8,6 @@ render extra pages, collect static assets, thumbnails, CSS.
 import json
 import shutil
 import subprocess
-from datetime import datetime
 from pathlib import Path
 
 import markdown
@@ -109,6 +108,10 @@ class IndexPage:
         into site.meta_data. The home page's own title is not the site title,
         and overwriting it there leaked into the JSON-LD publisher name and
         the feed channel.
+
+        A missing date leaves self.date as None rather than today's: the
+        clock must not reach an output file, or an unchanged site stops
+        rebuilding to identical bytes.
         '''
         index_md = self.site.config.source_dir / "index.md"
         with open(index_md, 'r') as md_file:
@@ -120,10 +123,8 @@ class IndexPage:
             try:
                 self.title = self.post_meta_data.get("title", ["Untitled"])[0]
                 self.author = self.post_meta_data.get("authors", ["Anonymous"])[0]
-                self.date = datetime.strptime(
-                    self.post_meta_data.get("date", [datetime.now().strftime('%Y-%m-%d')])[0],
-                    '%Y-%m-%d'
-                )
+                self.date = self.site.config.to_datetime(
+                    self.post_meta_data.get("date", [None])[0])
                 self.description = self._parse_description()
             except KeyError:
                 print("Metadata not found in index.md")
@@ -288,11 +289,13 @@ class Site:
                     self.pages.append(post)
                 post.render()
 
-        # sort the posts to show the latest post first
-        self.posts.sort(key=lambda post: (
-            -datetime.combine(post.date, datetime.min.time()).timestamp(),
-            post.title
-        ))
+        # Sort the posts to show the latest post first, with the title as a
+        # tie-break so posts sharing a timestamp keep a stable order. Two
+        # passes rather than one tuple key: a datetime cannot be negated the
+        # way the old -timestamp key was, and that key silently dropped the
+        # time of day anyway.
+        self.posts.sort(key=lambda post: post.title or '')
+        self.posts.sort(key=lambda post: post.date, reverse=True)
 
         # Output JSON-LD file with linked data schema for posts
         json_ld_data = generate_posts_jsonld(self.posts, self.meta_data)

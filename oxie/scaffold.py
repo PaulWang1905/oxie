@@ -71,7 +71,7 @@ PACKAGE_JSON = {
 
 # oxie is not on PyPI, so a scaffolded site pins the git tag rather than a
 # version specifier that pip cannot resolve. Bump this with every release.
-REQUIREMENTS_TXT = "oxie @ git+https://github.com/PaulWang1905/oxie.git@v0.4.0\n"
+REQUIREMENTS_TXT = "oxie @ git+https://github.com/PaulWang1905/oxie.git@v0.4.1\n"
 
 GITIGNORE = """\
 __pycache__/

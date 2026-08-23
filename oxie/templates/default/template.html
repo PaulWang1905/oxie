@@ -15,7 +15,7 @@
 {% if full_link %}<meta property="og:url" content="{{ full_link }}">{% endif %}
 {% if meta_data %}<meta property="og:site_name" content="{{ meta_data.title }}">{% endif %}
 {% if image_url %}<meta property="og:image" content="{{ image_url }}">{% endif %}
-{% if date %}<meta property="article:published_time" content="{{ date }}">{% endif %}
+{% if date %}<meta property="article:published_time" content="{{ date.isoformat() }}">{% endif %}
 <meta name="twitter:card" content="{{ 'summary_large_image' if image_url else 'summary' }}">
 <meta name="twitter:title" content="{{ title }}">
 {% if summary %}<meta name="twitter:description" content="{{ summary }}">{% endif %}
@@ -27,7 +27,7 @@
   <h1 class="text-3xl font-semibold leading-tight tracking-tight">{{ title }}</h1>
 
   <p class="mt-3 text-sm text-neutral-500 dark:text-neutral-400">
-    {% if date %}<time datetime="{{ date }}">{{ date.strftime('%d %B %Y') }}</time>{% endif %}
+    {% if date %}<time datetime="{{ date.isoformat() }}">{{ date.strftime('%d %B %Y') }}</time>{% endif %}
     {% if author %}<span>· {{ author }}</span>{% endif %}
     {% if category %}
     <span>· <a href="/blog_{{ category }}.html" class="underline underline-offset-2 hover:text-amber-700 dark:hover:text-amber-500">{{ category }}</a></span>

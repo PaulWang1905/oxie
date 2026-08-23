@@ -46,7 +46,9 @@ def w3c_date(day) -> Optional[str]:
     A YYYY-MM-DD date, as <lastmod> wants it.
 
     Formatted numerically rather than through a locale-aware strftime code,
-    so the output does not depend on the builder's LC_TIME.
+    so the output does not depend on the builder's LC_TIME. A datetime keeps
+    the calendar day of its own offset, which is the day its author wrote,
+    not the UTC day the feed's pubDate converts to.
     '''
     if day is None:
         return None
@@ -57,16 +59,31 @@ def rfc822_date(day) -> Optional[str]:
     '''
     An RFC 822 date in GMT, as RSS <pubDate> requires.
 
-    Post dates are datetime.date (YAML parses them that way), so a bare date
-    is read as midnight GMT. email.utils does the formatting because the
-    equivalent strftime codes emit localised day and month names.
+    Post dates arrive from SiteConfig.to_datetime already timezone-aware,
+    and are converted to UTC here because usegmt rejects any other offset.
+    A bare date is still read as midnight GMT, so the helper stays usable on
+    its own. email.utils does the formatting because the equivalent strftime
+    codes emit localised day and month names.
     '''
     if day is None:
         return None
     moment = day if isinstance(day, datetime) else datetime.combine(day, time.min)
     if moment.tzinfo is None:
         moment = moment.replace(tzinfo=timezone.utc)
-    return format_datetime(moment, usegmt=True)
+    return format_datetime(moment.astimezone(timezone.utc), usegmt=True)
+
+
+def iso8601_date(moment) -> Optional[str]:
+    '''
+    An ISO 8601 timestamp, as Schema.org dates want them.
+
+    isoformat() rather than strftime, so the output holds no locale-dependent
+    names and keeps the offset the date was written with. Google's structured
+    data guidance asks for the time and offset, not a bare calendar date.
+    '''
+    if moment is None:
+        return None
+    return moment.isoformat()
 
 
 def last_modified_of(post):
@@ -185,9 +202,9 @@ def post_jsonld(post, meta_data) -> dict:
     ItemList in posts_metadata.jsonld; use jsonld_script() to emit it on its
     own inside a page.
     '''
-    published = post.date.strftime('%Y-%m-%d')
-    modified = last_modified_of(post)
-    return {
+    published = iso8601_date(post.date)
+    modified = iso8601_date(last_modified_of(post)) or published
+    data = {
         "@type": "BlogPosting",
         "@id": post.full_link,
         "headline": post.title,
@@ -196,7 +213,7 @@ def post_jsonld(post, meta_data) -> dict:
             "name": post.author
         },
         "datePublished": published,
-        "dateModified": modified.strftime('%Y-%m-%d') if modified else published,
+        "dateModified": modified,
         "description": post.summary,
         "about": {
             "@type": "DefinedTerm",
@@ -218,6 +235,13 @@ def post_jsonld(post, meta_data) -> dict:
             "@id": post.full_link
         }
     }
+    if published is None:
+        # A post whose frontmatter has no Date at all. Dropping the keys
+        # beats emitting nulls that no consumer can read, and beats the
+        # AttributeError this used to raise.
+        del data["datePublished"]
+        del data["dateModified"]
+    return data
 
 
 def posts_jsonld(posts: List, meta_data) -> dict:

@@ -14,8 +14,13 @@ All relative paths are resolved against the current working directory,
 so a build is normally run from the site's root folder.
 '''
 from dataclasses import dataclass, field
+from datetime import date, datetime, time, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence
+from zoneinfo import ZoneInfo
+
+#: Bound here because SiteConfig has a field called `timezone`.
+UTC = timezone.utc
 
 DEFAULT_MARKDOWN_EXTENSIONS = [
     'pymdownx.tilde', 'pymdownx.emoji', 'tables', 'meta', 'footnotes',
@@ -56,6 +61,14 @@ class SiteConfig:
     # Static assets: source directory -> output directory. None means the
     # classic default: source/image -> docs/image, source/static -> docs/page.
     collect_dirs: Optional[Dict[str, str]] = None
+
+    # Dates. A front matter date written without an offset is read in this
+    # timezone, and one written without a time of day is placed at
+    # default_post_time. Noon rather than midnight: midnight is still the
+    # previous calendar day for every reader west of the site, so a post
+    # dated the 22nd would be shown as the 21st.
+    timezone: str = 'UTC'
+    default_post_time: time = time(12, 0)
 
     # Page titles excluded from the index page listing
     index_excluded_titles: Sequence[str] = ('Terms of Service', 'Privacy Policy')
@@ -104,3 +117,47 @@ class SiteConfig:
             self.photos_md = self.source_dir / 'photo' / 'photos.md'
         if self.thumbnail_dir is None:
             self.thumbnail_dir = self.output_dir / 'image' / 'photo'
+
+    @property
+    def tzinfo(self):
+        '''
+        The site timezone as a tzinfo. The UTC default is short-circuited,
+        so an ordinary site needs no timezone database installed.
+        '''
+        return UTC if self.timezone.upper() == 'UTC' else ZoneInfo(self.timezone)
+
+    def to_datetime(self, value) -> Optional[datetime]:
+        '''
+        Normalise one front matter date into a timezone-aware datetime.
+
+        Front matter yields whatever YAML made of the value: a date for
+        `Date: 2026-08-22`, a naive datetime for `Date: 2026-08-22
+        09:30:00`, an aware one when an offset is written, and a string
+        from index.md, which the Markdown meta extension reads as text.
+        Those types do not compare with each other, so a site holding a
+        mix of them cannot be sorted — every date is converted here, on
+        the way in, and everything downstream works on the one type.
+
+        A date-only value is placed at default_post_time and a value with
+        no offset is read in the site timezone; an aware value keeps the
+        offset its author wrote. None passes through, so an optional field
+        such as Last_modified needs no checking first.
+        '''
+        if value is None:
+            return None
+        if isinstance(value, str):
+            text = value.strip()
+            # Tried as a date first: fromisoformat would otherwise read a
+            # date-only string as midnight, skipping default_post_time.
+            try:
+                value = date.fromisoformat(text)
+            except ValueError:
+                value = datetime.fromisoformat(text)
+        if isinstance(value, datetime):     # datetime subclasses date
+            moment = value
+        elif isinstance(value, date):
+            moment = datetime.combine(value, self.default_post_time)
+        else:
+            raise TypeError('Expected a date, datetime or ISO 8601 string, '
+                            f'got {type(value).__name__}: {value!r}')
+        return moment if moment.tzinfo else moment.replace(tzinfo=self.tzinfo)

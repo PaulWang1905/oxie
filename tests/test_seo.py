@@ -177,8 +177,9 @@ class TestFeed(SeoTestCase):
                          'https://example.com/post/second.html')
         self.assertEqual(item.find('guid').text,
                          'https://example.com/post/second.html')
+        # Noon, not midnight: midnight GMT is the previous day west of here
         self.assertEqual(item.find('pubDate').text,
-                         'Fri, 01 Mar 2024 00:00:00 GMT')
+                         'Fri, 01 Mar 2024 12:00:00 GMT')
         self.assertEqual(item.find('category').text, 'Essays')
         self.assertEqual(item.find('{%s}creator' % RSS_DC_NS).text, 'Test Author')
         self.assertIn('<h1', item.find('{%s}encoded' % RSS_CONTENT_NS).text)

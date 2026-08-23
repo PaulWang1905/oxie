@@ -23,7 +23,7 @@ from .seo import (
 from .site import Site, BlogIndex, IndexPage, generate_posts_jsonld
 from .updates import Update, UpdateReader
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 __all__ = [
     "Site", "SiteConfig", "Post", "Category", "BlogIndex", "IndexPage",

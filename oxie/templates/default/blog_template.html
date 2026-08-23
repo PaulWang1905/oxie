@@ -35,7 +35,7 @@
     {% for post in posts %}
     <li class="py-4">
       <a href="{{ post.link }}" class="font-medium underline-offset-2 hover:underline">{{ post.title }}</a>
-      {% if post.date %}<time datetime="{{ post.date }}" class="ml-2 text-xs text-neutral-500 dark:text-neutral-400">{{ post.date.strftime('%d %b %Y') }}</time>{% endif %}
+      {% if post.date %}<time datetime="{{ post.date.isoformat() }}" class="ml-2 text-xs text-neutral-500 dark:text-neutral-400">{{ post.date.strftime('%d %b %Y') }}</time>{% endif %}
       {% if post.category %}
       <span class="ml-2 rounded-full border border-neutral-200 px-2 py-0.5 text-xs text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">{{ post.category }}</span>
       {% endif %}

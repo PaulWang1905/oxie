@@ -10,7 +10,8 @@ pre-wired and building.
 
 ## Requirements
 
-- Python 3.10+ (3.8 nominally supported but untested)
+- Python 3.10+ (3.9 is the floor, since `zoneinfo` is stdlib from 3.9, but
+  only 3.10–3.12 are exercised by CI)
 - Node.js and npm — Tailwind CSS is a required part of the build
 
 ## Quick start
@@ -125,6 +126,8 @@ Every path and feature lives on `SiteConfig`:
 | `use_bundled_templates` | `True` | Fall back to oxie's templates for anything the site omits |
 | `markdown_extensions` / `..._configs` | pymdownx set | Markdown pipeline |
 | `collect_dirs` | `source/image`→`docs/image`, `source/static`→`docs/page` | Static asset copying |
+| `timezone` | `"UTC"` | IANA name; a front matter date with no offset is read in this zone |
+| `default_post_time` | `time(12, 0)` | Time of day given to a date-only entry |
 | `index_excluded_titles` | Terms of Service, Privacy Policy | Pages hidden from the index listing |
 | `simple_pages` | `{}` | template name → output name, rendered once |
 | `photography` / `photos_md` | `False` | Photo album page |
@@ -162,6 +165,32 @@ Your markdown here.
 
 `index.md` uses the Markdown `meta` extension style instead (`Key: value`
 lines at the top of the file, no `---` fences).
+
+### Dates
+
+`Date` and `Last_modified` take a plain date, a date and time, or a date, time
+and offset — they can be mixed freely across a site:
+
+```yaml
+Date: 2026-08-22                  # placed at default_post_time (noon)
+Date: 2026-08-22 09:30:00         # read in the site timezone
+Date: 2026-08-22 09:30:00+01:00   # keeps the offset as written
+```
+
+Whichever form you use, oxie converts it to a timezone-aware datetime as it
+reads the file, so posts always sort chronologically and the feed, JSON-LD and
+sitemap agree on when a post was published.
+
+The noon default is deliberate. A date-only entry has to be given some time of
+day, and midnight in the site's timezone is still the previous calendar day for
+any reader west of it — a post dated the 22nd would show as the 21st. Noon is
+the right day for every offset from UTC−12 to UTC+11. Set `default_post_time`
+to change it, and `timezone` to something other than UTC if your dates are
+local:
+
+```python
+config = SiteConfig(timezone="Europe/London")
+```
 
 Templates the generator expects in `template_dir`: `template.html` (posts and
 pages), `index.html`, `blog_template.html`, `category_template.html`, plus any
@@ -213,8 +242,7 @@ fully reproducible HTML.
 
 ## Status
 
-Version 0.4.0, extracted from the generator behind
-[puyuwang.org](https://puyuwang.org).
+Version 0.4.1.
 
 Three behaviours carried over from that codebase were fixed in 0.4.0 and will
 change your output on upgrade: category order on the blog index is now sorted
@@ -222,6 +250,10 @@ rather than set-iteration order; `IndexPage` no longer overwrites
 `meta_data["title"]`; and the home page description is no longer truncated to
 its first character. The metadata key `update_spreedsheet_id` keeps its
 original spelling, since renaming it would break existing sites.
+
+Date handling was reworked in 0.4.1 and changes generated output once, with no
+front matter edits needed: feed `pubDate` moves from midnight to noon, and
+JSON-LD dates gain a time and offset. See [CHANGELOG.md](CHANGELOG.md).
 
 ## Licence
 

@@ -232,8 +232,10 @@ class TestOxie(unittest.TestCase):
         self.assertEqual(data['numberOfItems'], 1)
         entry = data['itemListElement'][0]
         self.assertEqual(entry['headline'], 'Test Post')
-        self.assertEqual(entry['datePublished'], '2024-01-01')
-        self.assertEqual(entry['dateModified'], '2024-01-02')
+        # Full ISO 8601, not a bare calendar date: a date-only entry is
+        # stamped at the configured default time in the site timezone
+        self.assertEqual(entry['datePublished'], '2024-01-01T12:00:00+00:00')
+        self.assertEqual(entry['dateModified'], '2024-01-02T12:00:00+00:00')
 
     def test_simple_pages(self):
         self.site.config.simple_pages = {'extra_template.html': 'extra.html'}

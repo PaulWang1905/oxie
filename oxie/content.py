@@ -26,6 +26,7 @@ class Post:
         self.title = None
         self.content = None
         self.date = None
+        self.last_modified = None
         self.author = None
         self.category = None
         self.tags = []
@@ -58,9 +59,13 @@ class Post:
                 self.author = self.post_meta_data["Authors"]
                 self.summary = self.post_meta_data["Summary"]
                 self.category = self.post_meta_data["Category"]
-                self.date = self.post_meta_data['Date']
+                # Normalised on the way in, so a site mixing dated and
+                # timed posts still sorts and formats as one type
+                self.date = self.site.config.to_datetime(
+                    self.post_meta_data['Date'])
                 # Last_modified is optional and defaults to the post date
-                self.last_modified = self.post_meta_data.get('Last_modified', self.date)
+                self.last_modified = self.site.config.to_datetime(
+                    self.post_meta_data.get('Last_modified')) or self.date
                 print(f"Processing {self.md_path} with last modified date {self.last_modified}")
                 self.tags = self.post_meta_data.get('Tags', [])
                 # cover image from the metadata, falling back to the default
