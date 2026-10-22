@@ -31,7 +31,7 @@ class TestScaffold(unittest.TestCase):
             "src/base.html", "src/index.html", "src/template.html",
             "src/blog_template.html", "src/category_template.html",
             "source/index.md", "source/post/hello-world.md",
-            "source/page/about.md",
+            "source/page/about.md", "source/updates.yaml",
         ]
         for rel in expected:
             self.assertTrue((self.test_dir / rel).exists(), f"missing {rel}")
@@ -113,11 +113,20 @@ class TestScaffold(unittest.TestCase):
         self.assertIn("Test Blog", index)
         self.assertIn("Hello World", index)          # the sample post is listed
         self.assertIn('href="/post/hello-world.html"', index)
+        # the starter updates.yaml shows the feature working on first build
+        self.assertIn("Recent updates", index)
+        self.assertIn("Started Test Blog with oxie.", index)
 
-        post = (docs / "post/hello-world.html").read_text()
+        post =(docs / "post/hello-world.html").read_text()
         self.assertIn("<h1", post)
         self.assertIn("prose", post)                 # Tailwind typography applied
         self.assertIn("highlight", post)             # pygments code block
+
+    def test_requirements_pin_current_version_from_pypi(self):
+        import oxie
+        init_site(str(self.test_dir), title="Test Blog")
+        self.assertEqual((self.test_dir / "requirements.txt").read_text(),
+                         f"oxie=={oxie.__version__}\n")
 
     def test_cli_init(self):
         rc = cli_main(["init", str(self.test_dir), "--title", "CLI Site"])

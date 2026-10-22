@@ -1,5 +1,49 @@
 # Changelog
 
+## 0.5.0 — updates from a file (2026-10-23)
+
+A site can keep its "Recent updates" in `source/updates.yaml`, next to its
+content, instead of in a Google Sheet. Updates then live in git, appear on the
+next build, and need no network access, so a site rebuilds offline and a
+Google outage can no longer fail the build.
+
+`Site.get_recent_updates()` takes the first source that applies: the file when
+it exists, else the sheet named by `update_spreedsheet_id`, else nothing.
+
+### Added
+
+- `SiteConfig.updates_file` (default `source_dir/updates.yaml`) and
+  `SiteConfig.updates_limit` (default `5`, the count that was hardcoded).
+- `oxie.load_updates_file(path, config)`: reads a YAML list of `date` /
+  `content` entries, newest first. Keys are case-insensitive. Dates go through
+  `SiteConfig.to_datetime()`, so a date-only entry becomes noon in the site
+  timezone, like a post date. A malformed entry raises `ValueError` naming the
+  file and the entry number: invalid YAML, a top level that is not a list, an
+  entry that is not a mapping, a missing or empty `date`/`content`, or a date
+  that is not ISO 8601 (`DD/MM/YYYY` is rejected).
+- `oxie init` writes a starter `source/updates.yaml` with one entry, so a new
+  site shows the feature on its first build.
+
+### Changed — output
+
+None for existing sites. Output changes only when a site adds the file. A site
+still on the sheet was rebuilt with 0.4.1 and 0.5.0 and compared with
+`diff -r`: identical.
+
+When a site moves to the file, expect differences only in whitespace inside
+the updates box, since `content` is stripped. Dates from the file are
+timezone-aware, so a template that renders `update.date.isoformat()` gains a
+time and offset; `strftime` output is unchanged.
+
+### Changed — packaging
+
+- `PyYAML>=6.0` is now a declared dependency. It was already installed through
+  python-frontmatter, but oxie now imports `yaml` directly.
+- A scaffolded site's `requirements.txt` pins `oxie==0.5.0` from PyPI instead
+  of a git tag.
+- A site that moves to the file no longer needs `oxie[sheets]`, so it can drop
+  pandas and numpy from its install.
+
 ## 0.4.1 — date and time handling (2026-08-23)
 
 Front matter dates are now normalised to timezone-aware datetimes as they are

@@ -9,6 +9,7 @@ import json
 import shutil
 import subprocess
 from pathlib import Path
+from typing import Optional
 
 import markdown
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader
@@ -21,7 +22,7 @@ from .seo import (
     SitemapEntry, absolute_url, jsonld_script, last_modified_of, posts_jsonld,
     render_robots_txt, render_rss_feed, render_sitemap, w3c_date,
 )
-from .updates import UpdateReader
+from .updates import UpdateReader, load_updates_file
 
 
 def generate_posts_jsonld(posts, meta_data) -> dict:
@@ -221,11 +222,20 @@ class Site:
             tab_length=2,
         )
 
-    def get_recent_updates(self, limit: int = 5) -> list:
+    def get_recent_updates(self, limit: Optional[int] = None) -> list:
         '''
-        Recent updates from the site's Google Spreadsheet, or an empty
-        list if no update_spreedsheet_id is configured in meta_data.
+        The most recent updates for the index page: from updates_file when
+        it exists, otherwise from the Google Sheet named by
+        update_spreedsheet_id, otherwise none.
+
+        The two sources never mix in one build. Only the file's dates are
+        timezone-aware; the sheet's stay naive, as they always were.
         '''
+        if limit is None:
+            limit = self.config.updates_limit
+        updates_file = self.config.updates_file
+        if updates_file is not None and updates_file.exists():
+            return load_updates_file(updates_file, self.config)[:limit]
         spreadsheet_id = self.meta_data.get("update_spreedsheet_id")
         if not spreadsheet_id:
             return []

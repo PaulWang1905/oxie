@@ -1,7 +1,12 @@
 from datetime import datetime
+from pathlib import Path
 from typing import List, Optional
 import logging
 from dataclasses import dataclass
+
+import yaml
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -17,6 +22,52 @@ class Update:
     def __repr__(self) -> str:
         """Official string representation of the update."""
         return f"Update(date={self.date!r}, content={self.content!r})"
+
+
+def load_updates_file(path, config) -> List[Update]:
+    '''
+    Read updates from a YAML list of {date, content} entries, newest first.
+
+    Keys are matched case-insensitively, so the sheet's Date/Content column
+    names work too. Dates go through config.to_datetime(), so they are
+    timezone-aware like every other date oxie handles. Content is kept as
+    written, HTML included. The file is the author's own, so a malformed
+    entry raises ValueError naming the file and entry number rather than
+    being skipped.
+    '''
+    path = Path(path)
+    try:
+        # A stream rather than its text, so the error marks name the file
+        with path.open(encoding='utf-8') as stream:
+            data = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        hint = ''
+        if 'mapping values are not allowed' in str(getattr(exc, 'problem', '')):
+            hint = "\nContent containing ': ' must be written as a '>-' block."
+        raise ValueError(f"{path}: not valid YAML: {exc}{hint}") from None
+    if data is None:
+        return []
+    if not isinstance(data, list):
+        raise ValueError(f"{path}: expected a list of updates, "
+                         f"got {type(data).__name__}")
+    updates = []
+    for number, entry in enumerate(data, start=1):
+        if not isinstance(entry, dict):
+            raise ValueError(f"{path}: update {number} is not a mapping")
+        fields = {str(key).lower(): value for key, value in entry.items()}
+        content = str(fields.get('content') or '').strip()
+        if fields.get('date') in (None, '') or not content:
+            raise ValueError(f"{path}: update {number} needs a date and content")
+        try:
+            date = config.to_datetime(fields['date'])
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"{path}: update {number} has a bad date "
+                             f"(use YYYY-MM-DD): {exc}") from None
+        updates.append(Update(date=date, content=content))
+    # sort() is stable: same-day updates keep their file order
+    updates.sort(key=lambda update: update.date, reverse=True)
+    logger.info(f"Loaded {len(updates)} updates from {path}")
+    return updates
 
 
 class UpdateReader:

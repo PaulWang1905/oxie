@@ -37,6 +37,7 @@ is safe to run in a directory that already has content.
 ```
 source/            # content — edit this
   index.md         # home page
+  updates.yaml     # "Recent updates" on the home page
   post/*.md        # blog posts
   page/*.md        # standalone pages
   image/           # images, copied to docs/image
@@ -132,6 +133,8 @@ Every path and feature lives on `SiteConfig`:
 | `simple_pages` | `{}` | template name → output name, rendered once |
 | `photography` / `photos_md` | `False` | Photo album page |
 | `thumbnails` / `thumbnail_dir` / `thumbnail_width` | `False` / … / `600` | Gallery thumbnails |
+| `updates_file` | `source/updates.yaml` | Recent updates for the home page; see [Recent updates](#recent-updates) |
+| `updates_limit` | `5` | How many updates reach the index template |
 | `sitemap` / `sitemap_file` | `True` / `sitemap.xml` | XML sitemap of every indexable page |
 | `robots_txt` / `robots_file` | `True` / `robots.txt` | Permissive robots.txt pointing at the sitemap |
 | `feed` / `feed_file` / `feed_max_items` | `True` / `feed.xml` / `20` | RSS 2.0 feed of recent posts |
@@ -205,18 +208,72 @@ bundled template lists exactly what it gets. Every page receives `canonical`
 without being passed. Post and page renders additionally get `full_link` and
 `image_url` for social preview tags.
 
-### Recent updates from a Google Sheet (optional)
+### Recent updates
 
-If `meta_data.json` contains `update_spreedsheet_id`, oxie reads that public
-spreadsheet's CSV export (columns `Date` and `Content`) and passes the five
-most recent entries to the index template as `updates`. Omit the key and the
-list is simply empty — no network access is attempted.
+The home page can show a short list of recent news. oxie passes the five most
+recent entries to the index template as `updates`, taking them from the first
+source that applies:
 
-This feature requires the optional Sheets dependencies:
+1. `source/updates.yaml`, when that file exists;
+2. otherwise the Google Sheet named by `update_spreedsheet_id` in
+   `meta_data.json`;
+3. otherwise nothing, and the box is hidden.
+
+#### From a file
+
+Keep updates in `source/updates.yaml`, next to your content. `oxie init`
+writes a starter file. Updates then live in git, need no network access at
+build time, and appear the next time you build.
+
+```yaml
+# Order doesn't matter: oxie sorts by date, newest first.
+- date: 2026-05-01
+  content: >-
+    Short update. HTML is allowed, e.g.
+    <a href="https://example.org">a link</a>.
+
+- date: 2025-05-20
+  content: |-
+    A talk at the Digital Scholarship coffee morning.
+    Time: 20th May, 10.30 – 11.30 AM
+    Venue: Weston Library
+```
+
+- Each entry needs a `date` and `content`. Keys are case-insensitive, so
+  `Date`/`Content` work too; other keys are ignored.
+- `date` is `YYYY-MM-DD`, or a date and time. Like a post date, a date-only
+  value becomes noon in the site `timezone`. `DD/MM/YYYY` is not accepted.
+- Write `content` as a `>-` block, as above. A plain one-line value breaks as
+  soon as the text contains `: ` ("Time: 20th May"). Use `|-` instead to keep
+  line breaks.
+- `content` is inserted as written, so HTML works. Surrounding whitespace is
+  stripped.
+- An empty file means no updates.
+
+A malformed entry **fails the build** with an error naming the file and the
+entry number, rather than being skipped quietly:
+
+```
+ValueError: source/updates.yaml: update 3 has a bad date (use YYYY-MM-DD): …
+```
+
+Set `updates_file` to read a different path, and `updates_limit` to show more
+or fewer than five. `oxie.load_updates_file(path, config)` reads a file
+directly, if you need the updates elsewhere.
+
+#### From a Google Sheet
+
+The alternative, for sites with no `updates.yaml`: if `meta_data.json`
+contains `update_spreedsheet_id`, oxie reads that public spreadsheet's CSV
+export (columns `Date` and `Content`) on every build. A failed download fails
+the build. This needs the optional Sheets dependencies:
 
 ```bash
 pip install 'oxie[sheets]'
 ```
+
+The file wins whenever it exists, so you can keep the key as a fallback while
+moving to a file.
 
 ## Development
 
@@ -242,7 +299,7 @@ fully reproducible HTML.
 
 ## Status
 
-Version 0.4.1.
+Version 0.5.0.
 
 Three behaviours carried over from that codebase were fixed in 0.4.0 and will
 change your output on upgrade: category order on the blog index is now sorted
@@ -253,7 +310,11 @@ original spelling, since renaming it would break existing sites.
 
 Date handling was reworked in 0.4.1 and changes generated output once, with no
 front matter edits needed: feed `pubDate` moves from midnight to noon, and
-JSON-LD dates gain a time and offset. See [CHANGELOG.md](CHANGELOG.md).
+JSON-LD dates gain a time and offset.
+
+0.5.0 adds `source/updates.yaml` as a source for recent updates. Existing sites
+build exactly as before until they add the file. See
+[CHANGELOG.md](CHANGELOG.md).
 
 ## Licence
 

@@ -85,6 +85,12 @@ class SiteConfig:
     thumbnail_dir: Optional[Path] = None  # default: output_dir/image/photo
     thumbnail_width: int = 600
 
+    # Recent updates on the index page. Read from this YAML file when it
+    # exists; otherwise from the Google Sheet named by
+    # meta_data["update_spreedsheet_id"], if any.
+    updates_file: Optional[Path] = None   # default: source_dir/updates.yaml
+    updates_limit: int = 5                # how many reach the template
+
     # Discovery files. All are built from meta_data["link"], so that must be
     # the site's real base URL for the generated URLs to be correct.
     sitemap: bool = True
@@ -117,6 +123,10 @@ class SiteConfig:
             self.photos_md = self.source_dir / 'photo' / 'photos.md'
         if self.thumbnail_dir is None:
             self.thumbnail_dir = self.output_dir / 'image' / 'photo'
+        if self.updates_file is None:
+            self.updates_file = self.source_dir / 'updates.yaml'
+        else:
+            self.updates_file = Path(self.updates_file)
 
     @property
     def tzinfo(self):

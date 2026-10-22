@@ -21,13 +21,14 @@ from .seo import (
     render_rss_feed, render_sitemap,
 )
 from .site import Site, BlogIndex, IndexPage, generate_posts_jsonld
-from .updates import Update, UpdateReader
+from .updates import Update, UpdateReader, load_updates_file
 
-__version__ = "0.4.1"
+__version__ = "0.5.0"
 
 __all__ = [
     "Site", "SiteConfig", "Post", "Category", "BlogIndex", "IndexPage",
     "generate_posts_jsonld", "init_site", "Update", "UpdateReader",
+    "load_updates_file",
     "SitemapEntry", "post_jsonld", "posts_jsonld", "render_robots_txt",
     "render_rss_feed", "render_sitemap",
     "__version__",

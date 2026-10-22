@@ -69,9 +69,8 @@ PACKAGE_JSON = {
     },
 }
 
-# oxie is not on PyPI, so a scaffolded site pins the git tag rather than a
-# version specifier that pip cannot resolve. Bump this with every release.
-REQUIREMENTS_TXT = "oxie @ git+https://github.com/PaulWang1905/oxie.git@v0.4.1\n"
+# Bump this with every release, or new sites pin a stale version.
+REQUIREMENTS_TXT = "oxie==0.5.0\n"
 
 GITIGNORE = """\
 __pycache__/
@@ -151,6 +150,23 @@ home page but stay out of the blog index.
 Tell your readers who you are here.
 '''
 
+UPDATES_YAML = '''\
+# Recent updates for the home page. Order doesn't matter: oxie sorts by
+# date, newest first, and shows the latest five.
+#
+# Each entry needs a date (YYYY-MM-DD) and content. Write content as a ">-"
+# block, as below: a plain one-line value breaks on any ": " inside it. Use
+# "|-" instead to keep line breaks. HTML is allowed, e.g.
+# <a href="https://example.org">a link</a>.
+#
+# A malformed entry stops the build with an error naming it.
+
+- date: {today}
+  content: >-
+    Started {title} with oxie. Edit source/updates.yaml to change this
+    list, or delete the file to hide it.
+'''
+
 
 def _write(path: Path, content: str, force: bool, created: List[str], skipped: List[str]) -> None:
     '''Write content to path unless it exists and force is False.'''
@@ -225,6 +241,7 @@ def init_site(
     _write(root / "source" / "index.md", INDEX_MD.format(**fields), force, created, skipped)
     _write(root / "source" / "post" / "hello-world.md", POST_MD.format(**fields), force, created, skipped)
     _write(root / "source" / "page" / "about.md", ABOUT_MD.format(**fields), force, created, skipped)
+    _write(root / "source" / "updates.yaml", UPDATES_YAML.format(**fields), force, created, skipped)
 
     # Build script and project files
     _write(root / "build.py", BUILD_PY.format(title=title), force, created, skipped)
